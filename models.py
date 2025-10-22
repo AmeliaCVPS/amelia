@@ -32,9 +32,6 @@ class Encounter(db.Model):
     status = db.Column(db.String(20), default='aguardando')  # aguardando, em_atendimento, finalizado
     observacoes = db.Column(db.Text)
 
-# Armazenamento temporário da conversa (em memória)
-conversas_ativas = {}
-
 class SistemaTriagem:
     """Sistema inteligente de triagem da AMÉLIA"""
     
@@ -47,23 +44,24 @@ class SistemaTriagem:
     ]
     
     @staticmethod
-    def iniciar_conversa(paciente_id):
-        """Inicia uma nova conversa de triagem"""
-        conversas_ativas[paciente_id] = {
+    def iniciar_conversa_sessao(session):
+        """Inicia uma nova conversa de triagem usando sessão"""
+        session['conversa_triagem'] = {
             'etapa': 0,
             'respostas': {},
             'sintomas_coletados': [],
-            'dados_vitais': {}
+            'dados_vitais': {},
+            'finalizado': False
         }
         return SistemaTriagem.PERGUNTAS[0]['texto']
     
     @staticmethod
-    def processar_resposta(paciente_id, resposta):
-        """Processa a resposta do paciente e retorna próxima pergunta"""
-        if paciente_id not in conversas_ativas:
-            return SistemaTriagem.iniciar_conversa(paciente_id)
+    def processar_resposta_sessao(session, resposta):
+        """Processa a resposta do paciente usando sessão e retorna próxima pergunta"""
+        if 'conversa_triagem' not in session:
+            return SistemaTriagem.iniciar_conversa_sessao(session)
         
-        conversa = conversas_ativas[paciente_id]
+        conversa = session['conversa_triagem']
         etapa_atual = conversa['etapa']
         
         # Salva a resposta atual
@@ -84,7 +82,7 @@ class SistemaTriagem:
             return "Agora vou verificar seus sinais vitais...\n\n📊 Medindo temperatura...\n💓 Medindo batimentos cardíacos...\n\n(Clique em 'Enviar' para continuar)"
         
         # Finaliza triagem
-        return SistemaTriagem.finalizar_triagem(paciente_id)
+        return SistemaTriagem.finalizar_triagem_sessao(conversa)
     
     @staticmethod
     def coletar_sinais_vitais():
@@ -169,20 +167,24 @@ class SistemaTriagem:
         return f"{prefixo}{numero:03d}"
     
     @staticmethod
-    def finalizar_triagem(paciente_id):
-        """Finaliza a triagem e salva no banco de dados"""
-        conversa = conversas_ativas[paciente_id]
-        
+    def finalizar_triagem_sessao(conversa):
+        """Finaliza a triagem e prepara dados para salvar"""
         # Coleta sinais vitais
         conversa['dados_vitais'] = SistemaTriagem.coletar_sinais_vitais()
         
         # Calcula prioridade
         prioridade, emoji = SistemaTriagem.calcular_prioridade(conversa)
+        conversa['prioridade'] = prioridade
+        conversa['emoji'] = emoji
         
         # Gera senha de chamada
         senha = SistemaTriagem.gerar_senha_chamada(prioridade)
+        conversa['senha_chamada'] = senha
         
-        # Cria registro no banco
+        # Marca como finalizado
+        conversa['finalizado'] = True
+        
+        # Monta resposta final
         vitais = conversa['dados_vitais']
         nivel_dor = conversa['respostas'].get(3, 0)
         
@@ -191,23 +193,6 @@ class SistemaTriagem:
         except:
             nivel_dor = 0
         
-        nova_consulta = Encounter(
-            patient_id=paciente_id,
-            sintomas='\n'.join(conversa['sintomas_coletados']),
-            nivel_dor=nivel_dor,
-            temperatura=vitais['temperatura'],
-            batimentos=vitais['batimentos'],
-            pressao_sistolica=vitais['pressao_sistolica'],
-            pressao_diastolica=vitais['pressao_diastolica'],
-            prioridade=prioridade,
-            senha_chamada=senha,
-            status='aguardando'
-        )
-        
-        db.session.add(nova_consulta)
-        db.session.commit()
-        
-        # Monta resposta final
         resposta_final = f"""
 ✅ Triagem concluída com sucesso!
 
@@ -234,10 +219,34 @@ class SistemaTriagem:
 Aguarde a chamada da sua senha no painel. Obrigada por usar a AMÉLIA! 💙
 """
         
-        # Limpa conversa
-        del conversas_ativas[paciente_id]
-        
         return resposta_final
+    
+    @staticmethod
+    def salvar_triagem(paciente_id, conversa):
+        """Salva a triagem no banco de dados"""
+        vitais = conversa['dados_vitais']
+        nivel_dor = conversa['respostas'].get(3, 0)
+        
+        try:
+            nivel_dor = int(nivel_dor)
+        except:
+            nivel_dor = 0
+        
+        nova_consulta = Encounter(
+            patient_id=paciente_id,
+            sintomas='\n'.join(conversa['sintomas_coletados']),
+            nivel_dor=nivel_dor,
+            temperatura=vitais['temperatura'],
+            batimentos=vitais['batimentos'],
+            pressao_sistolica=vitais['pressao_sistolica'],
+            pressao_diastolica=vitais['pressao_diastolica'],
+            prioridade=conversa['prioridade'],
+            senha_chamada=conversa['senha_chamada'],
+            status='aguardando'
+        )
+        
+        db.session.add(nova_consulta)
+        db.session.commit()
     
     @staticmethod
     def estimar_tempo_espera(prioridade):
@@ -259,16 +268,3 @@ Aguarde a chamada da sua senha no painel. Obrigada por usar a AMÉLIA! 💙
             return "Permaneça na sala de espera. Se sentir piora dos sintomas, avise a recepção."
         else:
             return "Aguarde confortavelmente na sala de espera. Mantenha-se hidratado."
-    
-    @staticmethod
-    def obter_historico(paciente_id):
-        """Retorna histórico de conversas"""
-        if paciente_id in conversas_ativas:
-            return conversas_ativas[paciente_id]['sintomas_coletados']
-        return []
-    
-    @staticmethod
-    def resetar_conversa(paciente_id):
-        """Reseta a conversa de um paciente"""
-        if paciente_id in conversas_ativas:
-            del conversas_ativas[paciente_id]
