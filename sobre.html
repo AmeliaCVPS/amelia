@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sobre - AMÉLIA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        
+        .sobre-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .hero-sobre {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem;
+            text-align: center;
+        }
+        
+        .hero-sobre h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .conteudo-sobre {
+            padding: 3rem;
+        }
+        
+        .section-title {
+            color: #667eea;
+            font-weight: bold;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title i {
+            margin-right: 0.5rem;
+            font-size: 1.5rem;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .feature-item {
+            padding: 1.5rem;
+            border-radius: 15px;
+            background: #f8f9fa;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .team-member {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .team-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+        
+        .ods-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            margin: 0.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="sobre-container">
+        <!-- Hero Section -->
+        <div class="hero-sobre">
+            <h1>🤖💙</h1>
+            <h1>AMÉLIA</h1>
+            <h4>Atendimento Médico Eficiente<br>Lenitivo de Inteligência Artificial</h4>
+            <p class="mt-3">Tecnologia a favor da vida</p>
+        </div>
+        
+        <!-- Conteúdo -->
+        <div class="conteudo-sobre">
+            <h2 class="section-title">
+                <i class="bi bi-lightbulb"></i>
+                O Projeto
+            </h2>
+            <p class="lead">
+                A AMÉLIA é um sistema inovador de triagem médica que utiliza Inteligência Artificial 
+                para tornar o atendimento nos postos de saúde mais ágil, organizado e eficiente.
+            </p>
+            <p>
+                Desenvolvido por estudantes do ensino médio, o projeto nasceu da necessidade de 
+                solucionar problemas reais enfrentados pela população: filas extensas, atendimento 
+                demorado e falta de organização nas unidades de saúde.
+            </p>
+            
+            <h2 class="section-title">
+                <i class="bi bi-bullseye"></i>
+                Objetivos
+            </h2>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">⚡</div>
+                    <h5>Agilizar Atendimento</h5>
+                    <p class="small text-muted">Redução significativa no tempo de espera</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📊</div>
+                    <h5>Organizar Filas</h5>
+                    <p class="small text-muted">Priorização baseada em gravidade</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🤖</div>
+                    <h5>Triagem Inteligente</h5>
+                    <p class="small text-muted">IA para classificação automática</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">💙</div>
+                    <h5>Humanização</h5>
+                    <p class="small text-muted">Atendimento acolhedor e inclusivo</p>
+                </div>
+            </div>
+            
+            <h2 class="section-title">
+                <i class="bi bi-gear"></i>
+                Como Funciona
+            </h2>
+            <ol class="lead">
+                <li><strong>Cadastro:</strong> Paciente se registra no sistema com CPF e Cartão SUS</li>
+                <li><strong>Triagem Conversacional:</strong> AMÉLIA faz perguntas sobre sintomas</li>
+                <li><strong>Coleta de Sinais Vitais:</strong> Integração com sensores (temperatura, batimentos)</li>
+                <li><strong>Classificação IA:</strong> Sistema calcula prioridade automaticamente</li>
+                <li><strong>Geração de Senha:</strong> Paciente recebe senha e tempo estimado</li>
+                <li><strong>Prontuário Digital:</strong> Histórico completo sempre acessível</li>
+            </ol>
+            
+            <h2 class="section-title">
+                <i class="bi bi-cpu"></i>
+                Tecnologias Utilizadas
+            </h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Software</h5>
+                    <ul>
+                        <li>Python + Flask</li>
+                        <li>SQLAlchemy (Banco de Dados)</li>
+                        <li>HTML, CSS, Bootstrap</li>
+                        <li>JavaScript</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h5>Hardware (Integração)</h5>
+                    <ul>
+                        <li>Sensor de Temperatura</li>
+                        <li>Sensor de Batimentos Cardíacos</li>
+                        <li>Arduino (opcional)</li>
+                        <li>Interface Web Responsiva</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <h2 class="section-title">
+                <i class="bi bi-globe"></i>
+                Objetivos de Desenvolvimento Sustentável (ODS)
+            </h2>
+            <div class="text-center">
+                <div class="ods-badge">
+                    <i class="bi bi-heart-pulse me-2"></i>
+                    ODS 3: Saúde e Bem-Estar
+                </div>
+                <div class="ods-badge">
+                    <i class="bi bi-people me-2"></i>
+                    ODS 10: Redução das Desigualdades
+                </div>
+            </div>
+            <p class="mt-3">
+                O projeto AMÉLIA contribui diretamente para garantir acesso universal à saúde de qualidade 
+                e reduzir desigualdades no atendimento, promovendo um sistema mais justo e eficiente.
+            </p>
+            
+            <h2 class="section-title">
+                <i class="bi bi-people"></i>
+                Equipe de Desenvolvimento
+            </h2>
+            <div class="team-member">
+                <div class="team-avatar">👨‍💻</div>
+                <div>
+                    <strong>Marcelo de Oliveira</strong>
+                    <p class="mb-0 small text-muted">Desenvolvedor</p>
+                </div>
+            </div>
+            <div class="team-member">
+                <div class="team-avatar">👨‍💻</div>
+                <div>
+                    <strong>Marcos Pires</strong>
+                    <p class="mb-0 small text-muted">Desenvolvedor</p>
+                </div>
+            </div>
+            <div class="team-member">
+                <div class="team-avatar">👨‍💻</div>
+                <div>
+                    <strong>Thiago Nascimento</strong>
+                    <p class="mb-0 small text-muted">Desenvolvedor</p>
+                </div>
+            </div>
+            <div class="team-member">
+                <div class="team-avatar">👨‍💻</div>
+                <div>
+                    <strong>Daniel Oliveira</strong>
+                    <p class="mb-0 small text-muted">Desenvolvedor</p>
+                </div>
+            </div>
+            
+            <div class="alert alert-info mt-4">
+                <strong>Professor Orientador:</strong> Anderson Borges<br>
+                <strong>Disciplina:</strong> Robótica e Inteligência Artificial - 2ª série EM - 2025
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="/" class="btn btn-primary btn-lg">
+                    <i class="bi bi-arrow-left me-2"></i>Voltar ao Início
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Atendimento - AMÉLIA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: #f0f2f5;
+        }
+        
+        .navbar-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+        
+        .fila-container {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+        
+        .paciente-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 5px solid;
+            transition: all 0.3s ease;
+        }
+        
+        .paciente-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .paciente-item.urgente {
+            border-color: #dc3545;
+            background: #fff5f5;
+        }
+        
+        .paciente-item.alta {
+            border-color: #fd7e14;
+            background: #fff8f0;
+        }
+        
+        .paciente-item.media {
+            border-color: #0dcaf0;
+            background: #f0f9ff;
+        }
+        
+        .paciente-item.baixa {
+            border-color: #198754;
+            background: #f0fff4;
+        }
+        
+        .senha-grande {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+        }
+        
+        .empty-queue {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        
+        .empty-queue i {
+            font-size: 4rem;
+            opacity: 0.3;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-custom navbar-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand">
+                <span class="fs-4">🤖💙</span>
+                <strong>AMÉLIA</strong> - Painel de Atendimento
+            </span>
+            <div>
+                <button class="btn btn-light btn-sm" onclick="location.reload()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Atualizar
+                </button>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container-fluid mt-4">
+        <!-- Estatísticas -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <i class="bi bi-people-fill text-primary" style="font-size: 2rem;"></i>
+                    <div class="stats-number text-primary">{{ consultas | length }}</div>
+                    <div class="text-muted">Pacientes na Fila</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 2rem;"></i>
+                    <div class="stats-number text-danger">
+                        {{ consultas | selectattr('prioridade', 'equalto', 'URGENTE') | list | length }}
+                    </div>
+                    <div class="text-muted">Urgentes</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <i class="bi bi-exclamation-circle-fill text-warning" style="font-size: 2rem;"></i>
+                    <div class="stats-number text-warning">
+                        {{ consultas | selectattr('prioridade', 'equalto', 'ALTA') | list | length }}
+                    </div>
+                    <div class="text-muted">Alta Prioridade</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <i class="bi bi-clock-fill text-info" style="font-size: 2rem;"></i>
+                    <div class="stats-number text-info">
+                        {{ (consultas | selectattr('prioridade', 'equalto', 'MÉDIA') | list | length) + 
+                           (consultas | selectattr('prioridade', 'equalto', 'BAIXA') | list | length) }}
+                    </div>
+                    <div class="text-muted">Normal</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Fila de Atendimento -->
+        <div class="fila-container">
+            <h4 class="mb-4">
+                <i class="bi bi-list-ul me-2"></i>
+                Fila de Atendimento
+                <small class="text-muted">(Ordenada por Prioridade)</small>
+            </h4>
+            
+            {% if consultas %}
+                {% for consulta in consultas %}
+                <div class="paciente-item {{ consulta.prioridade | lower }}">
+                    <div class="row align-items-center">
+                        <div class="col-md-2 text-center">
+                            <p class="senha-grande mb-0 
+                                {% if consulta.prioridade == 'URGENTE' %}text-danger pulse
+                                {% elif consulta.prioridade == 'ALTA' %}text-warning
+                                {% elif consulta.prioridade == 'MÉDIA' %}text-info
+                                {% else %}text-success
+                                {% endif %}">
+                                {{ consulta.senha_chamada }}
+                            </p>
+                            <small class="text-muted">{{ consulta.data.strftime('%H:%M') }}</small>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <h6 class="mb-1">
+                                <i class="bi bi-person-circle me-2"></i>
+                                {{ consulta.paciente.nome }}
+                            </h6>
+                            <small class="text-muted">
+                                <i class="bi bi-card-text me-1"></i>
+                                SUS: {{ consulta.paciente.sus[:3] }} {{ consulta.paciente.sus[3:7] }} ...
+                            </small>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="mb-1">
+                                <span class="badge 
+                                    {% if consulta.prioridade == 'URGENTE' %}bg-danger
+                                    {% elif consulta.prioridade == 'ALTA' %}bg-warning text-dark
+                                    {% elif consulta.prioridade == 'MÉDIA' %}bg-info
+                                    {% else %}bg-success
+                                    {% endif %}">
+                                    {% if consulta.prioridade == 'URGENTE' %}🔴
+                                    {% elif consulta.prioridade == 'ALTA' %}🟠
+                                    {% elif consulta.prioridade == 'MÉDIA' %}🟡
+                                    {% else %}🟢
+                                    {% endif %}
+                                    {{ consulta.prioridade }}
+                                </span>
+                            </div>
+                            <p class="mb-0 small">
+                                <strong>Queixa:</strong> {{ consulta.sintomas.split('\n')[0][:50] }}...
+                            </p>
+                            <div class="mt-1">
+                                <small>
+                                    <i class="bi bi-thermometer-half me-1"></i>{{ consulta.temperatura }}°C
+                                    <i class="bi bi-heart-pulse ms-2 me-1"></i>{{ consulta.batimentos }} bpm
+                                    {% if consulta.nivel_dor %}
+                                    <i class="bi bi-exclamation-triangle ms-2 me-1"></i>Dor: {{ consulta.nivel_dor }}/10
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 text-end">
+                            <a href="/chamar_paciente/{{ consulta.id }}" class="btn btn-primary btn-sm mb-1">
+                                <i class="bi bi-megaphone me-1"></i>Chamar
+                            </a>
+                            <button class="btn btn-outline-secondary btn-sm mb-1" data-bs-toggle="collapse" data-bs-target="#detalhes{{ consulta.id }}">
+                                <i class="bi bi-info-circle me-1"></i>Detalhes
+                            </button>
+                            <a href="/finalizar_atendimento/{{ consulta.id }}" class="btn btn-success btn-sm">
+                                <i class="bi bi-check-circle me-1"></i>Finalizar
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Detalhes Expandíveis -->
+                    <div class="collapse mt-3" id="detalhes{{ consulta.id }}">
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Sintomas Completos:</h6>
+                                <p class="small" style="white-space: pre-line;">{{ consulta.sintomas }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Sinais Vitais Completos:</h6>
+                                <ul class="small">
+                                    <li>Temperatura: {{ consulta.temperatura }}°C</li>
+                                    <li>Batimentos: {{ consulta.batimentos }} bpm</li>
+                                    <li>Pressão: {{ consulta.pressao_sistolica }}/{{ consulta.pressao_diastolica }} mmHg</li>
+                                    <li>Nível de Dor: {{ consulta.nivel_dor }}/10</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <!-- Fila Vazia -->
+                <div class="empty-queue">
+                    <i class="bi bi-check-circle"></i>
+                    <h5>Nenhum paciente aguardando</h5>
+                    <p class="text-muted">Todos os atendimentos foram concluídos!</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Legenda -->
+        <div class="row mt-4 mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="mb-3"><i class="bi bi-info-circle me-2"></i>Legenda de Prioridades</h6>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <span class="badge bg-danger me-2">🔴 URGENTE</span>
+                                <small class="text-muted">Atendimento imediato</small>
+                            </div>
+                            <div class="col-md-3">
+                                <span class="badge bg-warning text-dark me-2">🟠 ALTA</span>
+                                <small class="text-muted">15-30 minutos</small>
+                            </div>
+                            <div class="col-md-3">
+                                <span class="badge bg-info me-2">🟡 MÉDIA</span>
+                                <small class="text-muted">30-60 minutos</small>
+                            </div>
+                            <div class="col-md-3">
+                                <span class="badge bg-success me-2">🟢 BAIXA</span>
+                                <small class="text-muted">1-2 horas</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-refresh a cada 30 segundos
+        setTimeout(function() {
+            location.reload();
+        }, 30000);
+        
+        // Notificação sonora para casos urgentes
+        {% if consultas | selectattr('prioridade', 'equalto', 'URGENTE') | list | length > 0 %}
+        console.log('⚠️ Atenção: Há pacientes URGENTES aguardando!');
+        {% endif %}
+    </script>
+</body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prontuário - AMÉLIA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: #f0f2f5;
+        }
+        
+        .navbar-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .prontuario-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+        }
+        
+        .card-header-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .patient-info {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .consulta-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+        
+        .consulta-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        
+        .badge-prioridade {
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+        }
+        
+        .sinais-vitais {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .sinal-item {
+            flex: 1;
+            min-width: 150px;
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .sinal-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .sinal-valor {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .sinal-label {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        
+        .senha-display {
+            font-size: 2rem;
+            font-weight: bold;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-custom navbar-dark">
+        <div class="container">
+            <span class="navbar-brand">
+                <span class="fs-4">🤖💙</span>
+                <strong>AMÉLIA</strong> - Prontuário Médico
+            </span>
+            <div>
+                <a href="/chat_triagem" class="btn btn-light btn-sm me-2">
+                    <i class="bi bi-chat-dots"></i> Nova Triagem
+                </a>
+                <a href="/logout" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-box-arrow-right"></i> Sair
+                </a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container prontuario-container">
+        <!-- Informações do Paciente -->
+        <div class="patient-info">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h3 class="mb-3">
+                        <i class="bi bi-person-circle text-primary me-2"></i>
+                        {{ paciente.nome }}
+                    </h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <strong><i class="bi bi-person-badge me-2"></i>CPF:</strong>
+                                {{ paciente.cpf[:3] }}.{{ paciente.cpf[3:6] }}.{{ paciente.cpf[6:9] }}-{{ paciente.cpf[9:] }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <strong><i class="bi bi-card-text me-2"></i>Cartão SUS:</strong>
+                                {{ paciente.sus }}
+                            </p>
+                        </div>
+                    </div>
+                    <p class="mb-0 text-muted">
+                        <i class="bi bi-calendar-check me-2"></i>
+                        Cadastrado em: {{ paciente.data_cadastro | formatar_data }}
+                    </p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <div class="badge bg-primary p-3" style="font-size: 1.1rem;">
+                        <i class="bi bi-file-medical"></i><br>
+                        {{ consultas | length }} Consulta(s)
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Título Histórico -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4>
+                <i class="bi bi-clock-history me-2"></i>
+                Histórico de Atendimentos
+            </h4>
+            {% if consultas %}
+            <button class="btn btn-outline-primary btn-sm" onclick="window.print()">
+                <i class="bi bi-printer me-1"></i>Imprimir
+            </button>
+            {% endif %}
+        </div>
+        
+        <!-- Lista de Consultas -->
+        {% if consultas %}
+            {% for consulta in consultas %}
+            <div class="consulta-card">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="mb-1">
+                                    <i class="bi bi-calendar3 me-2"></i>
+                                    {{ consulta.data | formatar_data }}
+                                </h5>
+                                <span class="badge badge-prioridade bg-{{ consulta.prioridade | cor_prioridade }}">
+                                    {% if consulta.prioridade == 'URGENTE' %}🔴
+                                    {% elif consulta.prioridade == 'ALTA' %}🟠
+                                    {% elif consulta.prioridade == 'MÉDIA' %}🟡
+                                    {% else %}🟢
+                                    {% endif %}
+                                    {{ consulta.prioridade }}
+                                </span>
+                                <span class="badge bg-secondary ms-2">
+                                    {{ consulta.status | upper | replace('AGUARDANDO', 'Aguardando') | replace('EM_ATENDIMENTO', 'Em Atendimento') | replace('FINALIZADO', 'Finalizado') }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong><i class="bi bi-chat-left-text me-2"></i>Queixa:</strong>
+                            <p class="mb-0 mt-1">{{ consulta.sintomas.split('\n')[0] }}</p>
+                        </div>
+                        
+                        {% if consulta.nivel_dor %}
+                        <div class="mb-2">
+                            <strong><i class="bi bi-exclamation-triangle me-2"></i>Nível de Dor:</strong>
+                            <span class="badge bg-warning text-dark">{{ consulta.nivel_dor }}/10</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="senha-display">
+                            <div class="text-muted small mb-1">SENHA</div>
+                            {{ consulta.senha_chamada }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sinais Vitais -->
+                <hr>
+                <h6 class="mb-3"><i class="bi bi-heart-pulse me-2"></i>Sinais Vitais</h6>
+                <div class="sinais-vitais">
+                    {% if consulta.temperatura %}
+                    <div class="sinal-item">
+                        <div class="sinal-icon">🌡️</div>
+                        <div class="sinal-valor">{{ consulta.temperatura }}°C</div>
+                        <div class="sinal-label">Temperatura</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if consulta.batimentos %}
+                    <div class="sinal-item">
+                        <div class="sinal-icon">💓</div>
+                        <div class="sinal-valor">{{ consulta.batimentos }}</div>
+                        <div class="sinal-label">BPM</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if consulta.pressao_sistolica %}
+                    <div class="sinal-item">
+                        <div class="sinal-icon">🩺</div>
+                        <div class="sinal-valor">{{ consulta.pressao_sistolica }}/{{ consulta.pressao_diastolica }}</div>
+                        <div class="sinal-label">Pressão (mmHg)</div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Botão para ver detalhes -->
+                <div class="text-end mt-3">
+                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#detalhes{{ consulta.id }}">
+                        <i class="bi bi-chevron-down me-1"></i>Ver Detalhes
+                    </button>
+                </div>
+                
+                <!-- Detalhes Expandíveis -->
+                <div class="collapse mt-3" id="detalhes{{ consulta.id }}">
+                    <div class="alert alert-light">
+                        <strong>Sintomas Detalhados:</strong>
+                        <p class="mb-0 mt-2" style="white-space: pre-line;">{{ consulta.sintomas }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <!-- Estado Vazio -->
+            <div class="consulta-card empty-state">
+                <i class="bi bi-inbox"></i>
+                <h5>Nenhum atendimento registrado</h5>
+                <p class="text-muted">Você ainda não realizou nenhuma triagem.</p>
+                <a href="/chat_triagem" class="btn btn-primary mt-3">
+                    <i class="bi bi-plus-circle me-2"></i>Iniciar Nova Triagem
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
