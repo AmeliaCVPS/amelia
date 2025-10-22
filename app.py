@@ -6,20 +6,34 @@ import os
 
 app = Flask(__name__)
 
+# Desabilita instance folder (Vercel tem sistema read-only)
+app.instance_path = '/tmp'
+
 # Configuração do banco de dados
-# Para usar PostgreSQL no Vercel, adicione a variável DATABASE_URL nas configurações
-if os.environ.get('DATABASE_URL'):
+database_url = os.environ.get('DATABASE_URL')
+
+if database_url:
     # Vercel - Usa PostgreSQL
-    database_url = os.environ.get('DATABASE_URL')
     # Corrige URL se vier com postgres:// ao invés de postgresql://
     if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql://", 1)
+    
+    # Remove channel_binding se estiver causando problemas
+    if "channel_binding=require" in database_url:
+        database_url = database_url.replace("&channel_binding=require", "").replace("channel_binding=require&", "").replace("channel_binding=require", "")
+    
     app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    print(f"🔗 Conectando ao PostgreSQL...")
 else:
     # Local - Usa SQLite
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///amelia.db"
+    print(f"🔗 Usando SQLite local...")
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_pre_ping": True,
+    "pool_recycle": 300,
+}
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "chave_secreta_amelia_2025")
 
 # Inicializa o banco de dados
@@ -27,7 +41,11 @@ db.init_app(app)
 
 # Cria as tabelas
 with app.app_context():
-    db.create_all()
+    try:
+        db.create_all()
+        print("✅ Tabelas criadas/verificadas com sucesso!")
+    except Exception as e:
+        print(f"❌ Erro ao criar tabelas: {e}")
 
 @app.route("/")
 def index():
