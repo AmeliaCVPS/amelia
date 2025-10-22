@@ -2,11 +2,25 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from models import db, Patient, Encounter, SistemaTriagem
+import os
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///amelia.db"
+
+# Configuração do banco de dados
+# Para usar PostgreSQL no Vercel, adicione a variável DATABASE_URL nas configurações
+if os.environ.get('DATABASE_URL'):
+    # Vercel - Usa PostgreSQL
+    database_url = os.environ.get('DATABASE_URL')
+    # Corrige URL se vier com postgres:// ao invés de postgresql://
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+else:
+    # Local - Usa SQLite
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///amelia.db"
+
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SECRET_KEY"] = "chave_secreta_amelia_2025"
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "chave_secreta_amelia_2025")
 
 # Inicializa o banco de dados
 db.init_app(app)
@@ -91,13 +105,31 @@ def chat_triagem():
     resposta_amelia = None
     historico = []
     
+    # Inicializa conversa na sessão se não existir
+    if 'conversa_triagem' not in session:
+        session['conversa_triagem'] = {
+            'etapa': 0,
+            'respostas': {},
+            'sintomas_coletados': [],
+            'dados_vitais': {}
+        }
+    
     if request.method == "POST":
         mensagem = request.form.get("mensagem", "").strip()
         
         if mensagem:
-            # Processa a resposta do usuário
-            resposta_amelia = SistemaTriagem.processar_resposta(paciente_id, mensagem)
-            historico = SistemaTriagem.obter_historico(paciente_id)
+            # Processa a resposta do usuário usando sessão
+            resposta_amelia = SistemaTriagem.processar_resposta_sessao(session, mensagem)
+            historico = session['conversa_triagem'].get('sintomas_coletados', [])
+            
+            # Se a triagem finalizou, salva no banco
+            if session['conversa_triagem'].get('finalizado', False):
+                SistemaTriagem.salvar_triagem(paciente_id, session['conversa_triagem'])
+                # Limpa a conversa da sessão
+                session.pop('conversa_triagem', None)
+            else:
+                # Salva a sessão modificada
+                session.modified = True
             
             # Debug - mostra no console
             print(f"Mensagem do usuário: {mensagem}")
@@ -105,11 +137,12 @@ def chat_triagem():
             print(f"Histórico: {historico}")
     else:
         # GET - Primeira vez ou recarregou a página
-        historico = SistemaTriagem.obter_historico(paciente_id)
+        historico = session['conversa_triagem'].get('sintomas_coletados', [])
         
         # Se não há conversa ativa, inicia uma nova
-        if not historico:
-            resposta_amelia = SistemaTriagem.iniciar_conversa(paciente_id)
+        if session['conversa_triagem']['etapa'] == 0 and not historico:
+            resposta_amelia = SistemaTriagem.iniciar_conversa_sessao(session)
+            session.modified = True
     
     return render_template(
         "chattriagem.html",
@@ -121,7 +154,8 @@ def chat_triagem():
 def resetar_triagem():
     """Reseta a conversa de triagem"""
     if "paciente_id" in session:
-        SistemaTriagem.resetar_conversa(session["paciente_id"])
+        session.pop('conversa_triagem', None)
+        session.modified = True
         flash("Triagem resetada. Você pode iniciar uma nova conversa.", "info")
     return redirect(url_for("chat_triagem"))
 
@@ -214,5 +248,6 @@ def cor_prioridade(prioridade):
     }
     return cores.get(prioridade, 'secondary')
 
+# Para rodar localmente
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
